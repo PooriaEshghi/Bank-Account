@@ -80,9 +80,9 @@ const displayMovements = function(movements){
   });
 };
 
-const calcDisplayBalance = function(movements){
-  const balance = movements.reduce((acc,cur) => acc+cur,0)
-  labelBalance.textContent = `${balance} EUR`;
+const calcDisplayBalance = function(acc){
+  acc.balance = acc.movements.reduce((acc,cur) => acc+cur,0)
+  labelBalance.textContent = `${acc.balance} EUR`;
 }
 
 const calcDisplaySummary = function (acc){
@@ -116,13 +116,33 @@ const createUsernames = function(accs){
   })
 };
 createUsernames(accounts);
+
+const updateUI = function(acc){
+
+
+  // Display movements
+  displayMovements(acc.movements)
+
+
+  //Display balance
+  calcDisplayBalance(acc)
+
+
+  //Display summary
+  calcDisplaySummary(acc);
+  
+}
+
+
+// Event handler
 let currentAccount;
+
 btnLogin.addEventListener('click',(e)=>{  
   e.preventDefault();
   currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value);
   console.log(currentAccount)
   if(currentAccount?.pin === Number(inputLoginPin.value)){
-    console.log(currentAccount.pin)
+   
     labelWelcome.textContent =`Welcom back, ${currentAccount.owner.split(' ')[0]}`
   }
   containerApp.style.opacity = 100;
@@ -130,17 +150,32 @@ btnLogin.addEventListener('click',(e)=>{
   inputLoginPin.value = inputLoginUsername.value = '';
   inputLoginPin.blur();
 
-  // Display movements
-  displayMovements(currentAccount.movements)
+  // Update UI
+  updateUI(currentAccount);
 
-
-  //Display balance
-  calcDisplayBalance(currentAccount.movements)
-
-
-  //Display summary
-  calcDisplaySummary(currentAccount);
 });
+
+btnTransfer.addEventListener('click',e => {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(
+    acc => acc.username === inputTransferTo.value);
+    inputTransferAmount.value = inputTransferTo.value = '';
+    inputTransferTo.type = 'text';
+    inputTransferAmount.blur();
+ 
+  if(amount > 0
+     && receiverAcc
+     && currentAccount.balance >= amount
+     && receiverAcc?.username !== currentAccount.username){
+      currentAccount.movements.push(-amount);
+      receiverAcc.movements.push(amount);
+    }
+  
+    // Update UI
+    updateUI(currentAccount);
+
+})
 
 
 
